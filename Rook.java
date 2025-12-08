@@ -26,7 +26,7 @@ public class Rook extends Piece {
                     break;
                 }
                 
-                moves.add(new int[]{newRow, newCol});
+                moves.add(new int[]{newRow, newCol, dRow, dCol});
             }
         }
         

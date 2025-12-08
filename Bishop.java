@@ -29,7 +29,7 @@ public class Bishop extends Piece {
                     break;
                 }
                 
-                moves.add(new int[]{newRow, newCol});
+                moves.add(new int[]{newRow, newCol, dRow, dCol});
             }
         }
         

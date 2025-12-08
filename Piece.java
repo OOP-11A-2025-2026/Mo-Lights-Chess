@@ -55,8 +55,8 @@ public abstract class Piece {
     /**
      * Mark this piece as having moved.
      */
-    public void setMoved() {
-        this.hasMoved = true;
+    public void setMoved(boolean moved) {
+        this.hasMoved = moved;
     }
     
     /**
@@ -68,6 +68,26 @@ public abstract class Piece {
         return this.getClass().getSimpleName();
     }
     
+    public String getPieceLetter() {
+        switch (this.getType()) 
+        {
+            case "King": return "K";
+            case "Queen": return "Q";
+            case "Rook": return "R";
+            case "Bishop": return "B";
+            case "Knight": return "N";
+            default: return ""; 
+        }
+    }
+    
+    //get piece as string(e.g., bR, wQ)
+    public String getPieceStr()
+    {
+        String color = this.color.equals("white") ? "w" : "b";
+        String pieceLetter = this.getPieceLetter().equals("") ? "P" : this.getPieceLetter();
+        return color + pieceLetter;
+    }
+
     @Override
     public String toString() {
         return getSymbol();

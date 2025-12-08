@@ -108,9 +108,9 @@ public class Square {
     @Override
     public String toString() {
         if (piece != null) {
-            return piece.toString();
+            return piece.getPieceStr();
         }
-        return " ";
+        return "  ";
     }
     
     public String toStringDetailed() {
