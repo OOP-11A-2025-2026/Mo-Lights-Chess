@@ -1,8 +1,10 @@
+package pieces;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bishop piece - moves diagonally.
+ * Pieces.Bishop piece - moves diagonally.
  */
 public class Bishop extends Piece {
     

@@ -1,6 +1,13 @@
-public class Board 
+import pieces.*;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class Board
 {
     private Square[][] squares; 
+    private ChessEngine engine;
 
     public Board() {
         this.squares = new Square[8][8];

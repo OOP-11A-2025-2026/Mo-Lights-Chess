@@ -1,3 +1,5 @@
+    import pieces.*;
+
     import java.util.ArrayList;
     import java.util.List;
 
@@ -38,7 +40,7 @@
         //execute a move by changing the board state and saving the move in movelog
         public void makeMove(Move move)    
         {
-            if(!this.currentTurn.equals(move.getPieceMoved().color))
+            if(!this.currentTurn.equals(move.getPieceMoved().getColor()))
             {
                 throw new IllegalArgumentException("you can't move your pieces on opponent turn");
             }
@@ -113,27 +115,27 @@
                     {
                         if(currentPiece.getColor().equals(this.currentTurn))
                         {
-                            if(currentPiece.getType().equals("Pawn"))
+                            if(currentPiece.getType().equals("Pieces.Pawn"))
                             {
                                 this.getPawnMoves(currentSquare, this.board, possibleMoves);
                             }
-                            if(currentPiece.getType().equals("Rook"))
+                            if(currentPiece.getType().equals("Pieces.Rook"))
                             {
                                 this.getRookMoves(currentSquare, this.board, possibleMoves);
                             }
-                            if(currentPiece.getType().equals("Bishop"))
+                            if(currentPiece.getType().equals("Pieces.Bishop"))
                             {
                                 this.getBishopMoves(currentSquare, this.board, possibleMoves);
                             }
-                            if(currentPiece.getType().equals("Queen"))
+                            if(currentPiece.getType().equals("Pieces.Queen"))
                             {
                                 this.getQueenMoves(currentSquare, this.board, possibleMoves);
                             }
-                            if(currentPiece.getType().equals("Knight"))
+                            if(currentPiece.getType().equals("Pieces.Knight"))
                             {
                                 this.getKnightMoves(currentSquare, this.board, possibleMoves);
                             }
-                            if(currentPiece.getType().equals("King"))
+                            if(currentPiece.getType().equals("Pieces.King"))
                             {
                                 this.getKingMoves(currentSquare, this.board, possibleMoves);
                             }
@@ -181,7 +183,7 @@
                         if(!this.moveLog.isEmpty()) 
                         {
                             Move lastMove = this.moveLog.get(this.moveLog.size() - 1);
-                            if(lastMove.getPieceMoved().getType().equals("Pawn")) 
+                            if(lastMove.getPieceMoved().getType().equals("Pieces.Pawn"))
                             {
                                 int pawnRow = startSquare.getRow();
                                 int pawnCol = startSquare.getCol();

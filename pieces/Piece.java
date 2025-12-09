@@ -1,3 +1,5 @@
+package pieces;
+
 import java.util.List;
 
 public abstract class Piece {
@@ -71,11 +73,11 @@ public abstract class Piece {
     public String getPieceLetter() {
         switch (this.getType()) 
         {
-            case "King": return "K";
-            case "Queen": return "Q";
-            case "Rook": return "R";
-            case "Bishop": return "B";
-            case "Knight": return "N";
+            case "Pieces.King": return "K";
+            case "Pieces.Queen": return "Q";
+            case "Pieces.Rook": return "R";
+            case "Pieces.Bishop": return "B";
+            case "Pieces.Knight": return "N";
             default: return ""; 
         }
     }

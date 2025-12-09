@@ -1,3 +1,5 @@
+import pieces.Piece;
+
 public class Move {
 
     private Square startSquare;

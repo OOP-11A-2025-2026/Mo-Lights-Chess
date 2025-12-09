@@ -1,3 +1,5 @@
+import pieces.Piece;
+
 public class Square {
     private int row;
     private int col;
@@ -18,7 +20,7 @@ public class Square {
      * 
      * @param row Row position (0-7)
      * @param col Column position (0-7)
-     * @param piece Piece on this square (can be null)
+     * @param piece Pieces.Piece on this square (can be null)
      */
     public Square(int row, int col, Piece piece) {
         if (row < 0 || row > 7 || col < 0 || col > 7) {
@@ -108,7 +110,9 @@ public class Square {
     @Override
     public String toString() {
         if (piece != null) {
-            return piece.getPieceStr();
+            String colorCode = piece.getColor().equals("white") ? "\u001B[37m" : "\u001B[30m"; // white or black
+            String reset = "\u001B[0m";
+            return colorCode + piece.getSymbol() + reset;
         }
         return "  ";
     }
@@ -117,5 +121,6 @@ public class Square {
         String pieceStr = (piece != null) ? piece.getType() + "(" + piece.getColor() + ")" : "Empty";
         return "Square[" + getAlgebraicNotation() + ", " + pieceStr + "]";
     }
+
 }
 
