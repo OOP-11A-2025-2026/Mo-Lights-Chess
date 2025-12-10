@@ -46,6 +46,9 @@ public class Main {
         reader.readPGN("example_game.pgn");
 
         // Print board after reading moves
+        System.out.println("\nBoard after loading PGN:");
         engine.getBoard().printBoard();
+        
+        System.out.println("\nMoves played: " + engine.getMoveLog().size());
     }
 }

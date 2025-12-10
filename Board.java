@@ -1,13 +1,8 @@
 import pieces.*;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 public class Board
 {
-    private Square[][] squares; 
-    private ChessEngine engine;
+    private Square[][] squares;
 
     public Board() {
         this.squares = new Square[8][8];
@@ -80,14 +75,33 @@ public class Board
     }
     
     public void printBoard() {
+        // ANSI color codes
+        String whitePieceFg = "\u001B[97m"; // bright white text
+        String blackPieceFg = "\u001B[90m"; // dark gray text
+        String reset = "\u001B[0m";
+        
+        // Top border
+        System.out.println("  ┌────────────────┐");
+        
         for(int row = 0; row < 8; row++) 
         {
-            System.out.print((8 - row) + " ");
+            System.out.print((8 - row) + " │");
             for(int col = 0; col < 8; col++) {
-                System.out.print(this.squares[row][col].toString() + " ");
+                // Get piece from square
+                Square square = this.squares[row][col];
+                if (square.hasPiece()) {
+                    String pieceColor = square.getPiece().getColor().equals("white") ? whitePieceFg : blackPieceFg;
+                    String symbol = square.getPiece().getSymbol();
+                    System.out.print(pieceColor + symbol + " " + reset);
+                } else {
+                    System.out.print("· ");
+                }
             }
-            System.out.println();
+            System.out.println("│");
         }
-        System.out.println("  a  b  c  d  e  f  g  h");
+        
+        // Bottom border
+        System.out.println("  └────────────────┘");
+        System.out.println("   a b c d e f g h");
     }
 }

@@ -58,6 +58,25 @@
             {
                 end.setPiece(move.getPawnPromotionPiece());
             }
+            // Handle castling - move the rook as well
+            if(move.getKingSideCastle()) {
+                int row = start.getRow();
+                Square rookStart = this.board.getSquare(row, 7);
+                Square rookEnd = this.board.getSquare(row, 5);
+                Piece rook = rookStart.getPiece();
+                rookEnd.setPiece(rook);
+                rookStart.removePiece();
+                rook.setMoved(true);
+            }
+            if(move.getQueenSideCastle()) {
+                int row = start.getRow();
+                Square rookStart = this.board.getSquare(row, 0);
+                Square rookEnd = this.board.getSquare(row, 3);
+                Piece rook = rookStart.getPiece();
+                rookEnd.setPiece(rook);
+                rookStart.removePiece();
+                rook.setMoved(true);
+            }
             this.currentTurn = this.currentTurn.equals("white") ? "black" : "white";
             this.moveLog.add(move);
         }
@@ -79,6 +98,32 @@
                 end.removePiece();     
                 lastMove.getEnPassantCapturingSquare().setPiece(pieceCaptured);
                 pieceMoved.setMoved(lastMove.getHadPieceBeenMoved());
+                this.currentTurn = this.currentTurn.equals("white") ? "black" : "white";
+                return;
+            }
+            // Handle undoing castling
+            if(lastMove.getKingSideCastle() || lastMove.getQueenSideCastle()) {
+                int row = start.getRow();
+                start.setPiece(pieceMoved);
+                end.removePiece();
+                pieceMoved.setMoved(lastMove.getHadPieceBeenMoved());
+                
+                if(lastMove.getKingSideCastle()) {
+                    Square rookEnd = this.board.getSquare(row, 5);
+                    Square rookStart = this.board.getSquare(row, 7);
+                    Piece rook = rookEnd.getPiece();
+                    rookStart.setPiece(rook);
+                    rookEnd.removePiece();
+                    rook.setMoved(false);
+                } else { // queenside castle
+                    Square rookEnd = this.board.getSquare(row, 3);
+                    Square rookStart = this.board.getSquare(row, 0);
+                    Piece rook = rookEnd.getPiece();
+                    rookStart.setPiece(rook);
+                    rookEnd.removePiece();
+                    rook.setMoved(false);
+                }
+                
                 this.currentTurn = this.currentTurn.equals("white") ? "black" : "white";
                 return;
             }
@@ -115,27 +160,27 @@
                     {
                         if(currentPiece.getColor().equals(this.currentTurn))
                         {
-                            if(currentPiece.getType().equals("Pieces.Pawn"))
+                            if(currentPiece.getType().equals("Pawn"))
                             {
                                 this.getPawnMoves(currentSquare, this.board, possibleMoves);
                             }
-                            if(currentPiece.getType().equals("Pieces.Rook"))
+                            if(currentPiece.getType().equals("Rook"))
                             {
                                 this.getRookMoves(currentSquare, this.board, possibleMoves);
                             }
-                            if(currentPiece.getType().equals("Pieces.Bishop"))
+                            if(currentPiece.getType().equals("Bishop"))
                             {
                                 this.getBishopMoves(currentSquare, this.board, possibleMoves);
                             }
-                            if(currentPiece.getType().equals("Pieces.Queen"))
+                            if(currentPiece.getType().equals("Queen"))
                             {
                                 this.getQueenMoves(currentSquare, this.board, possibleMoves);
                             }
-                            if(currentPiece.getType().equals("Pieces.Knight"))
+                            if(currentPiece.getType().equals("Knight"))
                             {
                                 this.getKnightMoves(currentSquare, this.board, possibleMoves);
                             }
-                            if(currentPiece.getType().equals("Pieces.King"))
+                            if(currentPiece.getType().equals("King"))
                             {
                                 this.getKingMoves(currentSquare, this.board, possibleMoves);
                             }
@@ -183,7 +228,7 @@
                         if(!this.moveLog.isEmpty()) 
                         {
                             Move lastMove = this.moveLog.get(this.moveLog.size() - 1);
-                            if(lastMove.getPieceMoved().getType().equals("Pieces.Pawn"))
+                            if(lastMove.getPieceMoved().getType().equals("Pawn"))
                             {
                                 int pawnRow = startSquare.getRow();
                                 int pawnCol = startSquare.getCol();
@@ -407,6 +452,58 @@
                     if(!targetPiece.getColor().equals(king.getColor()))
                     {
                         possibleMoves.add(new Move(startSquare, targetSquare));
+                    }
+                }
+            }
+            
+            // Castling
+            if (!king.hasMoved()) {
+                int kingRow = startSquare.getRow();
+                int kingCol = startSquare.getCol();
+                
+                // Kingside castling
+                Square kingsideRookSquare = board.getSquare(kingRow, 7);
+                if (kingsideRookSquare.hasPiece() && 
+                    kingsideRookSquare.getPiece().getType().equals("Rook") &&
+                    kingsideRookSquare.getPiece().getColor().equals(king.getColor()) &&
+                    !kingsideRookSquare.getPiece().hasMoved()) {
+                    
+                    // Check if squares between king and rook are empty
+                    boolean pathClear = true;
+                    for (int col = kingCol + 1; col < 7; col++) {
+                        if (board.getSquare(kingRow, col).hasPiece()) {
+                            pathClear = false;
+                            break;
+                        }
+                    }
+                    
+                    if (pathClear) {
+                        Square targetSquare = board.getSquare(kingRow, kingCol + 2);
+                        Move castleMove = new Move(startSquare, targetSquare, false, false, null, true, false);
+                        possibleMoves.add(castleMove);
+                    }
+                }
+                
+                // Queenside castling
+                Square queensideRookSquare = board.getSquare(kingRow, 0);
+                if (queensideRookSquare.hasPiece() && 
+                    queensideRookSquare.getPiece().getType().equals("Rook") &&
+                    queensideRookSquare.getPiece().getColor().equals(king.getColor()) &&
+                    !queensideRookSquare.getPiece().hasMoved()) {
+                    
+                    // Check if squares between king and rook are empty
+                    boolean pathClear = true;
+                    for (int col = 1; col < kingCol; col++) {
+                        if (board.getSquare(kingRow, col).hasPiece()) {
+                            pathClear = false;
+                            break;
+                        }
+                    }
+                    
+                    if (pathClear) {
+                        Square targetSquare = board.getSquare(kingRow, kingCol - 2);
+                        Move castleMove = new Move(startSquare, targetSquare, false, false, null, false, true);
+                        possibleMoves.add(castleMove);
                     }
                 }
             }

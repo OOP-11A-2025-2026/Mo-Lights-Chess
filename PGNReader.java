@@ -1,8 +1,8 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
+import pieces.*;
 
 public class PGNReader {
 
@@ -73,10 +73,81 @@ public class PGNReader {
     }
 
     private boolean moveMatchesSAN(Move move, String san) {
-        String generatedSAN = move.toString();
-        // Remove spaces to match formatting
-        generatedSAN = generatedSAN.replaceAll("\\s+", "");
-        san = san.replaceAll("\\s+", "");
-        return generatedSAN.equals(san);
+        // Parse the SAN notation
+        Piece piece = move.getPieceMoved();
+        Square start = move.getStartSquare();
+        Square end = move.getEndSquare();
+        
+        // Handle pawn moves
+        if (piece.getType().equals("Pawn")) {
+            // Check if it's a capture (e.g., "exd5")
+            if (san.contains("x")) {
+                // Format: file + x + destination (e.g., "exd5")
+                String startFile = "" + (char)('a' + start.getCol());
+                String expectedSAN = startFile + "x" + end.getAlgebraicNotation();
+                
+                // Check for promotion
+                if (move.getIsPawnPromotion()) {
+                    String promotionLetter = move.getPawnPromotionPiece().getPieceLetter();
+                    expectedSAN += "=" + promotionLetter;
+                }
+                
+                return san.equals(expectedSAN);
+            } else {
+                // Non-capturing pawn move (e.g., "e4")
+                String expectedSAN = end.getAlgebraicNotation();
+                
+                // Check for promotion
+                if (move.getIsPawnPromotion()) {
+                    String promotionLetter = move.getPawnPromotionPiece().getPieceLetter();
+                    expectedSAN += "=" + promotionLetter;
+                }
+                
+                return san.equals(expectedSAN);
+            }
+        }
+        
+        // Handle piece moves (Knight, Bishop, Rook, Queen, King)
+        String pieceLetter = piece.getPieceLetter();
+        String destSquare = end.getAlgebraicNotation();
+        
+        // Basic pattern: piece letter + optional disambiguation + optional capture + destination
+        // e.g., "Nf3", "Nbd7", "Bxd2", "R1e8"
+        
+        if (!san.startsWith(pieceLetter)) {
+            return false;
+        }
+        
+        if (!san.endsWith(destSquare)) {
+            return false;
+        }
+        
+        // Extract middle part (between piece letter and destination)
+        String middle = san.substring(pieceLetter.length());
+        if (middle.endsWith(destSquare)) {
+            middle = middle.substring(0, middle.length() - destSquare.length());
+        }
+        
+        // Remove 'x' if present
+        middle = middle.replace("x", "");
+        
+        // If there's no disambiguation, just check destination matches
+        if (middle.isEmpty()) {
+            return true;
+        }
+        
+        // If there's disambiguation, check if it matches the start square
+        String startFile = "" + (char)('a' + start.getCol());
+        String startRank = "" + (8 - start.getRow());
+        
+        if (middle.length() == 1) {
+            // Single character disambiguation (file or rank)
+            return middle.equals(startFile) || middle.equals(startRank);
+        } else if (middle.length() == 2) {
+            // Full square disambiguation
+            return middle.equals(start.getAlgebraicNotation());
+        }
+        
+        return false;
     }
 }
