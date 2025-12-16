@@ -80,9 +80,46 @@ public class Main {
         // Game loop
         boolean gameRunning = true;
         while (gameRunning) {
+            // Check for checkmate or stalemate
+            try {
+                if (engine.isCheckmate()) {
+                    System.out.println("\n" + engine.getCurrentTurn().toUpperCase() + "'s turn:");
+                    engine.getBoard().printBoard();
+                    String winner = engine.getCurrentTurn().equals("white") ? "BLACK" : "WHITE";
+                    System.out.println("\n=================================");
+                    System.out.println("         CHECKMATE!              ");
+                    System.out.println("      " + winner + " WINS!           ");
+                    System.out.println("=================================");
+                    gameRunning = false;
+                    continue;
+                }
+                
+                if (engine.isStalemate()) {
+                    System.out.println("\n" + engine.getCurrentTurn().toUpperCase() + "'s turn:");
+                    engine.getBoard().printBoard();
+                    System.out.println("\n=================================");
+                    System.out.println("         STALEMATE!              ");
+                    System.out.println("        GAME IS A DRAW           ");
+                    System.out.println("=================================");
+                    gameRunning = false;
+                    continue;
+                }
+            } catch (InvalidSquareException | GameStateException e) {
+                System.out.println("Internal error checking game state: " + e.getMessage());
+            }
+            
             // Display current board
             System.out.println("\n" + engine.getCurrentTurn().toUpperCase() + "'s turn:");
             engine.getBoard().printBoard();
+            
+            // Check if current player is in check
+            try {
+                if (engine.isInCheck(engine.getCurrentTurn())) {
+                    System.out.println("\n*** CHECK! ***");
+                }
+            } catch (InvalidSquareException | GameStateException e) {
+                System.out.println("Internal error checking for check: " + e.getMessage());
+            }
             
             // Get user input
             System.out.print("\nEnter command: ");
@@ -127,7 +164,7 @@ public class Main {
                             System.out.print(move.getStartSquare().getAlgebraicNotation() + "->" + move.getEndSquare().getAlgebraicNotation() + " ");
                         }
                         System.out.println("\n(Total: " + availableMoves.size() + " moves)");
-                    } catch (InvalidSquareException e) {
+                    } catch (InvalidSquareException | GameStateException e) {
                         System.out.println("Internal error: " + e.getMessage());
                     }
                     break;
@@ -241,6 +278,9 @@ public class Main {
                                 if (selectedMove.getIsEnpassant()) {
                                     System.out.println("En passant!");
                                 }
+                                if (selectedMove.getIsPawnPromotion()) {
+                                    System.out.println("Pawn promoted to " + selectedMove.getPawnPromotionPiece().getType() + "!");
+                                }
                             } else {
                                 System.out.println("Illegal move! That move is not allowed.");
                                 System.out.println("Type 'moves' to see all legal moves.");
@@ -248,7 +288,7 @@ public class Main {
                             
                         } catch (InvalidMoveException e) {
                             System.out.println("Invalid move: " + e.getMessage());
-                        } catch (InvalidSquareException e) {
+                        } catch (InvalidSquareException | GameStateException e) {
                             System.out.println("Invalid square: " + e.getMessage());
                         } catch (Exception e) {
                             System.out.println("Error: " + e.getMessage());

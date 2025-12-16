@@ -137,11 +137,216 @@
         }
 
 
-        //filter those move if the put the king in check or not
-        public List<Move> getAllLegalMoves() throws InvalidSquareException
-        {
-            return this.getAllPossibleMoves();
+    // Find the king of the specified color
+    public Square findKing(String color) throws InvalidSquareException, GameStateException {
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Square square = this.board.getSquare(row, col);
+                if (square.hasPiece()) {
+                    Piece piece = square.getPiece();
+                    if (piece.getType().equals("King") && piece.getColor().equals(color)) {
+                        return square;
+                    }
+                }
+            }
         }
+        throw new GameStateException("King not found for color: " + color);
+    }
+    
+    // Check if a square is under attack by the specified color
+    public boolean isSquareUnderAttack(int row, int col, String byColor) throws InvalidSquareException, GameStateException {
+        // Save current turn
+        String originalTurn = this.currentTurn;
+        
+        // Temporarily switch turn to get opponent's moves
+        this.currentTurn = byColor;
+        
+        // Get all possible moves for the attacking color (not legal moves to avoid recursion)
+        List<Move> opponentMoves = this.getAllPossibleMoves();
+        
+        // Restore original turn
+        this.currentTurn = originalTurn;
+        
+        // Check if any opponent move targets this square
+        for (Move move : opponentMoves) {
+            if (move.getEndSquare().getRow() == row && move.getEndSquare().getCol() == col) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    // Check if the king of the specified color is in check
+    public boolean isInCheck(String color) throws InvalidSquareException, GameStateException {
+        Square kingSquare = findKing(color);
+        String opponentColor = color.equals("white") ? "black" : "white";
+        return isSquareUnderAttack(kingSquare.getRow(), kingSquare.getCol(), opponentColor);
+    }
+    
+    //filter those move if the put the king in check or not
+    public List<Move> getAllLegalMoves() throws InvalidSquareException, GameStateException
+    {
+        List<Move> possibleMoves = this.getAllPossibleMoves();
+        List<Move> legalMoves = new ArrayList<>();
+        
+        // Test each move to see if it leaves the king in check
+        for (Move move : possibleMoves) {
+            // Special handling for castling - check that king doesn't castle through check
+            if (move.getKingSideCastle() || move.getQueenSideCastle()) {
+                String kingColor = move.getPieceMoved().getColor();
+                String opponentColor = kingColor.equals("white") ? "black" : "white";
+                int row = move.getStartSquare().getRow();
+                int startCol = move.getStartSquare().getCol();
+                
+                // King cannot castle out of check
+                if (isInCheck(kingColor)) {
+                    continue;
+                }
+                
+                // Check intermediate square(s)
+                boolean passesThroughCheck = false;
+                if (move.getKingSideCastle()) {
+                    // King moves from col 4 to col 6, passing through col 5
+                    if (isSquareUnderAttack(row, startCol + 1, opponentColor)) {
+                        passesThroughCheck = true;
+                    }
+                } else { // Queenside castle
+                    // King moves from col 4 to col 2, passing through col 3
+                    if (isSquareUnderAttack(row, startCol - 1, opponentColor)) {
+                        passesThroughCheck = true;
+                    }
+                }
+                
+                if (passesThroughCheck) {
+                    continue;
+                }
+            }
+            
+            // Make the move temporarily
+            try {
+                makeMoveTesting(move);
+                
+                // Check if this leaves our king in check
+                if (!isInCheck(move.getPieceMoved().getColor())) {
+                    legalMoves.add(move);
+                }
+                
+                // Undo the move
+                undoMoveTesting();
+            } catch (Exception e) {
+                // If there's an error, skip this move
+                try {
+                    // Try to undo anyway
+                    if (!this.moveLog.isEmpty()) {
+                        undoMoveTesting();
+                    }
+                } catch (Exception undoError) {
+                    // Ignore undo errors
+                }
+            }
+        }
+        
+        return legalMoves;
+    }
+    
+    // Make a move for testing purposes (doesn't switch turns)
+    private void makeMoveTesting(Move move) throws InvalidSquareException {
+        Piece pieceMoved = move.getPieceMoved();
+        Square start = move.getStartSquare();
+        Square end = move.getEndSquare();
+        end.setPiece(pieceMoved);
+        start.removePiece();
+        boolean hadMoved = pieceMoved.hasMoved();
+        pieceMoved.setMoved(true);
+        move.setHadPieceBeenMoved(hadMoved);
+        
+        if(move.getIsEnpassant()) {
+            move.getEnPassantCapturingSquare().removePiece();
+        }
+        if(move.getIsPawnPromotion()) {
+            end.setPiece(move.getPawnPromotionPiece());
+        }
+        if(move.getKingSideCastle()) {
+            int row = start.getRow();
+            Square rookStart = this.board.getSquare(row, 7);
+            Square rookEnd = this.board.getSquare(row, 5);
+            Piece rook = rookStart.getPiece();
+            rookEnd.setPiece(rook);
+            rookStart.removePiece();
+            rook.setMoved(true);
+        }
+        if(move.getQueenSideCastle()) {
+            int row = start.getRow();
+            Square rookStart = this.board.getSquare(row, 0);
+            Square rookEnd = this.board.getSquare(row, 3);
+            Piece rook = rookStart.getPiece();
+            rookEnd.setPiece(rook);
+            rookStart.removePiece();
+            rook.setMoved(true);
+        }
+        
+        this.moveLog.add(move);
+    }
+    
+    // Undo a move for testing purposes (doesn't switch turns)
+    private void undoMoveTesting() throws InvalidSquareException {
+        if(this.moveLog.isEmpty()) {
+            return;
+        }
+        
+        Move lastMove = this.moveLog.remove(this.moveLog.size() - 1);
+        Piece pieceMoved = lastMove.getPieceMoved();
+        Piece pieceCaptured = lastMove.getPieceCaptured();
+        Square start = lastMove.getStartSquare();
+        Square end = lastMove.getEndSquare();
+        
+        if(lastMove.getIsEnpassant()) {
+            start.setPiece(pieceMoved);
+            end.removePiece();
+            lastMove.getEnPassantCapturingSquare().setPiece(pieceCaptured);
+            pieceMoved.setMoved(lastMove.getHadPieceBeenMoved());
+            return;
+        }
+        
+        if(lastMove.getKingSideCastle() || lastMove.getQueenSideCastle()) {
+            int row = start.getRow();
+            start.setPiece(pieceMoved);
+            end.removePiece();
+            pieceMoved.setMoved(lastMove.getHadPieceBeenMoved());
+            
+            if(lastMove.getKingSideCastle()) {
+                Square rookEnd = this.board.getSquare(row, 5);
+                Square rookStart = this.board.getSquare(row, 7);
+                Piece rook = rookEnd.getPiece();
+                rookStart.setPiece(rook);
+                rookEnd.removePiece();
+                rook.setMoved(false);
+            } else {
+                Square rookEnd = this.board.getSquare(row, 3);
+                Square rookStart = this.board.getSquare(row, 0);
+                Piece rook = rookEnd.getPiece();
+                rookStart.setPiece(rook);
+                rookEnd.removePiece();
+                rook.setMoved(false);
+            }
+            return;
+        }
+        
+        start.setPiece(pieceMoved);
+        end.setPiece(pieceCaptured);
+        pieceMoved.setMoved(lastMove.getHadPieceBeenMoved());
+    }
+    
+    // Check if the current player is in checkmate
+    public boolean isCheckmate() throws InvalidSquareException, GameStateException {
+        return getAllLegalMoves().isEmpty() && isInCheck(this.currentTurn);
+    }
+    
+    // Check if the game is a stalemate
+    public boolean isStalemate() throws InvalidSquareException, GameStateException {
+        return getAllLegalMoves().isEmpty() && !isInCheck(this.currentTurn);
+    }
 
         //getting all moves that follow the basic rules of chess (how every piece move) + pawn promotion + en passant rules
 
@@ -458,6 +663,8 @@
             }
             
             // Castling
+            // Note: We only check if path is clear here. Check detection (can't castle through check)
+            // will be handled by getAllLegalMoves() which filters out moves that leave king in check
             if (!king.hasMoved()) {
                 int kingRow = startSquare.getRow();
                 int kingCol = startSquare.getCol();

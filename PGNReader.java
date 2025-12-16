@@ -59,7 +59,7 @@ public class PGNReader {
         List<Move> possibleMoves;
         try {
             possibleMoves = engine.getAllLegalMoves();
-        } catch (InvalidSquareException e) {
+        } catch (InvalidSquareException | GameStateException e) {
             throw new PGNParseException(san, "Internal error: " + e.getMessage());
         }
 
