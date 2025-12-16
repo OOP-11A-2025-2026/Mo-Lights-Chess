@@ -1,4 +1,5 @@
     import pieces.*;
+    import exceptions.*;
 
     import java.util.ArrayList;
     import java.util.List;
@@ -29,20 +30,20 @@
             return this.currentTurn;
         }
         
-        public void setCurrentTurn(String currentTurn) 
+        public void setCurrentTurn(String currentTurn) throws InvalidColorException
         {   
             if(!currentTurn.equals("white") && !currentTurn.equals("black"))
             {
-                throw new IllegalArgumentException("Color must be 'white' or 'black'");
+                throw new InvalidColorException(currentTurn);
             }
             this.currentTurn = currentTurn;
         }
         //execute a move by changing the board state and saving the move in movelog
-        public void makeMove(Move move)    
+        public void makeMove(Move move) throws InvalidMoveException, InvalidSquareException
         {
             if(!this.currentTurn.equals(move.getPieceMoved().getColor()))
             {
-                throw new IllegalArgumentException("you can't move your pieces on opponent turn");
+                throw new WrongTurnException(this.currentTurn, move.getPieceMoved().getColor());
             }
             Piece pieceMoved = move.getPieceMoved();
             Square start = move.getStartSquare();
@@ -81,11 +82,11 @@
             this.moveLog.add(move);
         }
         //undo move by returning to the board last state and removing last move from movelog
-        public void undoMove()
+        public void undoMove() throws GameStateException, InvalidSquareException
         {
             if(this.moveLog.isEmpty())
             {
-                throw new IllegalArgumentException("You cant undo move from starting position");
+                throw new GameStateException("Cannot undo move from starting position");
             }
             Move lastMove = this.moveLog.remove(this.moveLog.size() - 1);
             Piece pieceMoved = lastMove.getPieceMoved();
@@ -137,14 +138,14 @@
 
 
         //filter those move if the put the king in check or not
-        public List<Move> getAllLegalMoves()
+        public List<Move> getAllLegalMoves() throws InvalidSquareException
         {
             return this.getAllPossibleMoves();
         }
 
         //getting all moves that follow the basic rules of chess (how every piece move) + pawn promotion + en passant rules
 
-        public List<Move> getAllPossibleMoves()
+        public List<Move> getAllPossibleMoves() throws InvalidSquareException
         {
             List<Move> possibleMoves = new ArrayList<>();
             String cols = "abcdefgh";
@@ -192,7 +193,7 @@
             return possibleMoves;
         } 
 
-        public void getPawnMoves(Square startSquare, Board board, List<Move> possibleMoves)
+        public void getPawnMoves(Square startSquare, Board board, List<Move> possibleMoves) throws InvalidSquareException
         {
             Pawn pawn = (Pawn) startSquare.getPiece();
             List<int[]> possiblePawnMoves = pawn.getPossibleMoves(startSquare.getRow(), startSquare.getCol());
@@ -295,7 +296,7 @@
 
         }
 
-        public void getRookMoves(Square startSquare, Board board, List<Move> possibleMoves)
+        public void getRookMoves(Square startSquare, Board board, List<Move> possibleMoves) throws InvalidSquareException
         {
             Rook rook = (Rook) startSquare.getPiece();
             List<int[]> possibleRookMoves = rook.getPossibleMoves(startSquare.getRow(), startSquare.getCol());
@@ -333,7 +334,7 @@
             }
         }
 
-        public void getQueenMoves(Square startSquare, Board board, List<Move> possibleMoves)
+        public void getQueenMoves(Square startSquare, Board board, List<Move> possibleMoves) throws InvalidSquareException
         {
             Queen queen = (Queen) startSquare.getPiece();
             List<int[]> possibleQueenMoves = queen.getPossibleMoves(startSquare.getRow(), startSquare.getCol());
@@ -371,7 +372,7 @@
             }
         }
 
-        public void getBishopMoves(Square startSquare, Board board, List<Move> possibleMoves)
+        public void getBishopMoves(Square startSquare, Board board, List<Move> possibleMoves) throws InvalidSquareException
         {
             Bishop bishop = (Bishop) startSquare.getPiece();
             List<int[]> possibleBishopMoves = bishop.getPossibleMoves(startSquare.getRow(), startSquare.getCol());
@@ -409,7 +410,7 @@
             }
         }
 
-        public void getKnightMoves(Square startSquare, Board board, List<Move> possibleMoves)
+        public void getKnightMoves(Square startSquare, Board board, List<Move> possibleMoves) throws InvalidSquareException
         {
             Knight knight = (Knight) startSquare.getPiece();
             List<int[]> possibleKnightMoves = knight.getPossibleMoves(startSquare.getRow(), startSquare.getCol());  
@@ -433,7 +434,7 @@
             }
         }
     
-        public void getKingMoves(Square startSquare, Board board, List<Move> possibleMoves)
+        public void getKingMoves(Square startSquare, Board board, List<Move> possibleMoves) throws InvalidSquareException
         {
             King king = (King) startSquare.getPiece();
             List<int[]> possibleKingMoves = king.getPossibleMoves(startSquare.getRow(), startSquare.getCol());  

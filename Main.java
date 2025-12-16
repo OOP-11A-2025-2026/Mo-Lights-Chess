@@ -1,5 +1,6 @@
 import java.util.List;
 import java.util.Scanner;
+import exceptions.*;
 
 public class Main {
     
@@ -42,8 +43,10 @@ public class Main {
                         System.out.println("Game loaded successfully!");
                         System.out.println("Moves loaded: " + loadedEngine.getMoveLog().size());
                         playGame(loadedEngine);
-                    } catch (Exception e) {
-                        System.out.println("Error loading game: " + e.getMessage());
+                    } catch (ChessFileException e) {
+                        System.out.println("File error: " + e.getMessage());
+                    } catch (PGNParseException e) {
+                        System.out.println("Parse error: " + e.getMessage());
                     }
                     break;
                     
@@ -109,18 +112,24 @@ public class Main {
                     try {
                         engine.undoMove();
                         System.out.println("Move undone!");
-                    } catch (IllegalArgumentException e) {
+                    } catch (GameStateException e) {
                         System.out.println("Error: " + e.getMessage());
+                    } catch (InvalidSquareException e) {
+                        System.out.println("Internal error: " + e.getMessage());
                     }
                     break;
                     
                 case "moves":
-                    List<Move> availableMoves = engine.getAllLegalMoves();
-                    System.out.println("\nLegal moves for " + engine.getCurrentTurn() + ":");
-                    for (Move move : availableMoves) {
-                        System.out.print(move.getStartSquare().getAlgebraicNotation() + "->" + move.getEndSquare().getAlgebraicNotation() + " ");
+                    try {
+                        List<Move> availableMoves = engine.getAllLegalMoves();
+                        System.out.println("\nLegal moves for " + engine.getCurrentTurn() + ":");
+                        for (Move move : availableMoves) {
+                            System.out.print(move.getStartSquare().getAlgebraicNotation() + "->" + move.getEndSquare().getAlgebraicNotation() + " ");
+                        }
+                        System.out.println("\n(Total: " + availableMoves.size() + " moves)");
+                    } catch (InvalidSquareException e) {
+                        System.out.println("Internal error: " + e.getMessage());
                     }
-                    System.out.println("\n(Total: " + availableMoves.size() + " moves)");
                     break;
                     
                 case "save":
@@ -135,7 +144,7 @@ public class Main {
                             }
                             writer.writePGN(filename, "Casual Game", "White Player", "Black Player", "*");
                             System.out.println("Game saved to " + filename);
-                        } catch (Exception e) {
+                        } catch (ChessFileException e) {
                             System.out.println("Error saving game: " + e.getMessage());
                         }
                     }
@@ -237,6 +246,10 @@ public class Main {
                                 System.out.println("Type 'moves' to see all legal moves.");
                             }
                             
+                        } catch (InvalidMoveException e) {
+                            System.out.println("Invalid move: " + e.getMessage());
+                        } catch (InvalidSquareException e) {
+                            System.out.println("Invalid square: " + e.getMessage());
                         } catch (Exception e) {
                             System.out.println("Error: " + e.getMessage());
                         }

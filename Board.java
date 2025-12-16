@@ -1,4 +1,5 @@
 import pieces.*;
+import exceptions.*;
 
 public class Board
 {
@@ -55,9 +56,9 @@ public class Board
     }
 
     //get square by row and col
-    public Square getSquare(int row, int col) {
+    public Square getSquare(int row, int col) throws InvalidSquareException {
         if(row < 0 || row > 7 || col < 0 || col > 7)
-            throw new IllegalArgumentException("Row and col must be between 0 and 7");
+            throw new InvalidSquareException(row, col);
         return this.squares[row][col];
     }
     //get square by file and rank(e.g., d4)

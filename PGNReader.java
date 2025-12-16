@@ -3,6 +3,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import pieces.*;
+import exceptions.*;
 
 public class PGNReader {
 
@@ -12,7 +13,7 @@ public class PGNReader {
         this.engine = engine;
     }
 
-    public List<Move> readPGN(String filePath) {
+    public List<Move> readPGN(String filePath) throws ChessFileException, PGNParseException {
         List<Move> moveLog = engine.getMoveLog();
         try {
             String content = Files.readString(Path.of(filePath));
@@ -37,21 +38,30 @@ public class PGNReader {
                 san = san.replaceAll("[+#]", "");
                 Move move = findMoveFromSAN(san);
                 if (move != null) {
-                    engine.makeMove(move);
+                    try {
+                        engine.makeMove(move);
+                    } catch (InvalidMoveException | InvalidSquareException e) {
+                        throw new PGNParseException(san, e.getMessage());
+                    }
                 } else {
-                    System.err.println("Could not parse SAN: " + token);
+                    throw new PGNParseException(san, "No matching legal move found");
                 }
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ChessFileException(filePath, "read", e);
         }
 
         return moveLog;
     }
 
-    private Move findMoveFromSAN(String san) {
-        List<Move> possibleMoves = engine.getAllLegalMoves();
+    private Move findMoveFromSAN(String san) throws PGNParseException {
+        List<Move> possibleMoves;
+        try {
+            possibleMoves = engine.getAllLegalMoves();
+        } catch (InvalidSquareException e) {
+            throw new PGNParseException(san, "Internal error: " + e.getMessage());
+        }
 
         // Handle castling
         if (san.equals("O-O") || san.equals("0-0")) {

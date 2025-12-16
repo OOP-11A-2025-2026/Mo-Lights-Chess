@@ -3,6 +3,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
+import exceptions.*;
 
 public class PGNWriter {
 
@@ -12,7 +13,7 @@ public class PGNWriter {
         this.engine = engine;
     }
 
-    public void writePGN(String filePath, String event, String whitePlayer, String blackPlayer, String result) {
+    public void writePGN(String filePath, String event, String whitePlayer, String blackPlayer, String result) throws ChessFileException {
         List<Move> moves = engine.getMoveLog();
         StringBuilder sb = new StringBuilder();
 
@@ -40,7 +41,7 @@ public class PGNWriter {
         try {
             Files.writeString(Path.of(filePath), sb.toString());
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ChessFileException(filePath, "write", e);
         }
     }
 }
