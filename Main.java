@@ -69,7 +69,8 @@ public class Main {
         System.out.println("         GAME STARTED            ");
         System.out.println("=================================");
         System.out.println("\nCommands:");
-        System.out.println("  - Enter move: e2 e4 (from square to square)");
+        System.out.println("  - Enter move (algebraic): e4, Nf3, Bxe5, O-O");
+        System.out.println("  - Enter move (coordinate): e2 e4, g1 f3");
         System.out.println("  - Undo: undo");
         System.out.println("  - Show moves: moves");
         System.out.println("  - Save game: save <filename>");
@@ -189,7 +190,8 @@ public class Main {
                     
                 case "help":
                     System.out.println("\nCommands:");
-                    System.out.println("  - Enter move: e2 e4 (from square to square)");
+                    System.out.println("  - Enter move (algebraic): e4, Nf3, Bxe5, O-O, e8=Q");
+                    System.out.println("  - Enter move (coordinate): e2 e4, g1 f3");
                     System.out.println("  - Undo: undo");
                     System.out.println("  - Show moves: moves");
                     System.out.println("  - Save game: save <filename>");
@@ -198,8 +200,88 @@ public class Main {
                     break;
                     
                 default:
-                    // Try to parse as a move (e.g., "e2 e4")
-                    if (tokens.length == 2) {
+                    // Try to parse as algebraic notation first (single token)
+                    if (tokens.length == 1) {
+                        String algebraic = tokens[0];
+                        
+                        try {
+                            AlgebraicNotationParser parser = new AlgebraicNotationParser(engine);
+                            Move selectedMove = parser.parseMove(algebraic);
+                            
+                            if (selectedMove != null) {
+                                // Handle pawn promotion if needed
+                                if (selectedMove.getIsPawnPromotion() && !algebraic.contains("=")) {
+                                    // Promotion not specified in notation, ask user
+                                    System.out.print("Promote to (Q/R/B/N): ");
+                                    String promotion = scanner.nextLine().trim().toUpperCase();
+                                    
+                                    // Find the right promotion move
+                                    List<Move> legalMoves = engine.getAllLegalMoves();
+                                    Move promotionMove = null;
+                                    
+                                    for (Move promMove : legalMoves) {
+                                        if (promMove.getStartSquare().equals(selectedMove.getStartSquare()) && 
+                                            promMove.getEndSquare().equals(selectedMove.getEndSquare()) && 
+                                            promMove.getIsPawnPromotion()) {
+                                            String pieceType = promMove.getPawnPromotionPiece().getType();
+                                            if ((promotion.equals("Q") && pieceType.equals("Queen")) ||
+                                                (promotion.equals("R") && pieceType.equals("Rook")) ||
+                                                (promotion.equals("B") && pieceType.equals("Bishop")) ||
+                                                (promotion.equals("N") && pieceType.equals("Knight"))) {
+                                                promotionMove = promMove;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    
+                                    if (promotionMove != null) {
+                                        selectedMove = promotionMove;
+                                    }
+                                }
+                                
+                                engine.makeMove(selectedMove);
+                                
+                                // Generate proper algebraic notation with check/checkmate symbols
+                                try {
+                                    String moveNotation = parser.toAlgebraicNotation(selectedMove);
+                                    System.out.println("Move made: " + moveNotation);
+                                } catch (Exception e) {
+                                    System.out.println("Move made: " + algebraic);
+                                }
+                                
+                                // Check for special moves
+                                if (selectedMove.getPieceCaptured() != null) {
+                                    System.out.println("Captured " + selectedMove.getPieceCaptured().getType() + "!");
+                                }
+                                if (selectedMove.getKingSideCastle()) {
+                                    System.out.println("Kingside castling!");
+                                }
+                                if (selectedMove.getQueenSideCastle()) {
+                                    System.out.println("Queenside castling!");
+                                }
+                                if (selectedMove.getIsEnpassant()) {
+                                    System.out.println("En passant!");
+                                }
+                                if (selectedMove.getIsPawnPromotion()) {
+                                    System.out.println("Pawn promoted to " + selectedMove.getPawnPromotionPiece().getType() + "!");
+                                }
+                            } else {
+                                System.out.println("Illegal move! That move is not allowed.");
+                                System.out.println("Type 'moves' to see all legal moves.");
+                            }
+                            
+                        } catch (PGNParseException e) {
+                            System.out.println("Error parsing move: " + e.getMessage());
+                        } catch (InvalidMoveException e) {
+                            System.out.println("Invalid move: " + e.getMessage());
+                        } catch (InvalidSquareException | GameStateException e) {
+                            System.out.println("Internal error: " + e.getMessage());
+                        } catch (Exception e) {
+                            System.out.println("Error: " + e.getMessage());
+                        }
+                    }
+                    // Try to parse as coordinate notation (two tokens: e.g., "e2 e4")
+                    else if (tokens.length == 2) {
                         String fromSquare = tokens[0].toLowerCase();
                         String toSquare = tokens[1].toLowerCase();
                         
@@ -263,7 +345,15 @@ public class Main {
                             
                             if (selectedMove != null) {
                                 engine.makeMove(selectedMove);
-                                System.out.println("Move made: " + fromSquare + " -> " + toSquare);
+                                
+                                // Generate proper algebraic notation with check/checkmate symbols
+                                try {
+                                    AlgebraicNotationParser parser = new AlgebraicNotationParser(engine);
+                                    String moveNotation = parser.toAlgebraicNotation(selectedMove);
+                                    System.out.println("Move made: " + fromSquare + " -> " + toSquare + " (" + moveNotation + ")");
+                                } catch (Exception e) {
+                                    System.out.println("Move made: " + fromSquare + " -> " + toSquare);
+                                }
                                 
                                 // Check for special moves
                                 if (selectedMove.getPieceCaptured() != null) {
@@ -295,6 +385,7 @@ public class Main {
                         }
                     } else {
                         System.out.println("Invalid command. Type 'help' for commands.");
+                        System.out.println("To move: use algebraic notation (e.g., 'e4', 'Nf3') or coordinate notation (e.g., 'e2 e4')");
                     }
                     break;
             }
