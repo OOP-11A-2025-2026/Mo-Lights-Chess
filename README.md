@@ -202,12 +202,22 @@ git clone https://github.com/yourusername/Mo-Lights-Chess.git
 cd Mo-Lights-Chess
 ```
 
-2. **Compile the project**
+2. **Enable UTF-8 output for proper chess piece display**
+PowerShell:
+```bash
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+```
+Command Prompt (CMD):
+```bash
+chcp 65001
+```
+
+3. **Compile the project**
 ```bash
 javac -d . *.java pieces/*.java exceptions/*.java
 ```
 
-3. **Run the game**
+4. **Run the game**
 ```bash
 java Main
 ```
