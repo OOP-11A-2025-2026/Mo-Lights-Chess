@@ -8,12 +8,16 @@
         Board board;
         List<Move> moveLog;
         String currentTurn;
+        GameResult gameResult;
+        private String drawRequestedBy; // Track who requested a draw
 
 
         public ChessEngine() {
             this.board = new Board();
             this.moveLog = new ArrayList<>();
             this.currentTurn = "white";
+            this.gameResult = new GameResult();
+            this.drawRequestedBy = null;
         }
 
         public Board getBoard()
@@ -28,6 +32,21 @@
         public String getCurrentTurn()
         {
             return this.currentTurn;
+        }
+
+        public GameResult getGameResult()
+        {
+            return this.gameResult;
+        }
+
+        public String getDrawRequestedBy()
+        {
+            return this.drawRequestedBy;
+        }
+
+        public void clearDrawRequest()
+        {
+            this.drawRequestedBy = null;
         }
         
         public void setCurrentTurn(String currentTurn) throws InvalidColorException
@@ -717,7 +736,62 @@
             }
         }
 
+    /**
+     * Current player resigns from the game
+     */
+    public void resign()
+    {
+        String winner = this.currentTurn.equals("white") ? "BLACK" : "WHITE";
+        GameResult.ResultType resultType = this.currentTurn.equals("white") ? 
+            GameResult.ResultType.BLACK_RESIGNED : GameResult.ResultType.WHITE_RESIGNED;
+        
+        this.gameResult.setResult(resultType, this.currentTurn + " resigned");
+    }
 
+    /**
+     * Request a draw - returns true if accepted (opponent already requested), false if pending opponent response
+     */
+    public boolean requestDraw()
+    {
+        if (this.drawRequestedBy == null) {
+            // No draw request yet, set one
+            this.drawRequestedBy = this.currentTurn;
+            return false;
+        } else if (this.drawRequestedBy.equals(this.currentTurn)) {
+            // Same player requesting again - ignore
+            return false;
+        } else {
+            // Other player already requested draw - accept it
+            this.gameResult.setResult(GameResult.ResultType.DRAW, "Draw agreed by both players");
+            this.drawRequestedBy = null;
+            return true;
+        }
+    }
 
+    /**
+     * Accept a pending draw request
+     */
+    public void acceptDraw() throws GameStateException
+    {
+        if (this.drawRequestedBy == null) {
+            throw new GameStateException("No draw request to accept");
+        }
+        if (this.drawRequestedBy.equals(this.currentTurn)) {
+            throw new GameStateException("You cannot accept your own draw request");
+        }
+        this.gameResult.setResult(GameResult.ResultType.DRAW, "Draw agreed by both players");
+        this.drawRequestedBy = null;
+    }
+
+    /**
+     * Decline a pending draw request
+     */
+    public void declineDraw() throws GameStateException
+    {
+        if (this.drawRequestedBy == null) {
+            throw new GameStateException("No draw request to decline");
+        }
+        this.drawRequestedBy = null;
+    }
 
     }

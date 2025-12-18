@@ -74,6 +74,10 @@ public class Main {
         System.out.println("  - Undo: undo");
         System.out.println("  - Show moves: moves");
         System.out.println("  - Save game: save <filename>");
+        System.out.println("  - Resign: resign");
+        System.out.println("  - Offer draw: draw");
+        System.out.println("  - Accept draw: accept");
+        System.out.println("  - Decline draw: decline");
         System.out.println("  - Main menu: menu");
         System.out.println("  - Help: help");
         System.out.println();
@@ -81,6 +85,18 @@ public class Main {
         // Game loop
         boolean gameRunning = true;
         while (gameRunning) {
+            // Check if game has ended (resign, draw agreement)
+            if (engine.getGameResult().isGameOver()) {
+                System.out.println("\n" + engine.getCurrentTurn().toUpperCase() + "'s turn:");
+                engine.getBoard().printBoard();
+                System.out.println("\n=================================");
+                System.out.println(engine.getGameResult().getResultMessage());
+                System.out.println("Reason: " + engine.getGameResult().getReason());
+                System.out.println("=================================");
+                gameRunning = false;
+                continue;
+            }
+
             // Check for checkmate or stalemate
             try {
                 if (engine.isCheckmate()) {
@@ -112,6 +128,12 @@ public class Main {
             // Display current board
             System.out.println("\n" + engine.getCurrentTurn().toUpperCase() + "'s turn:");
             engine.getBoard().printBoard();
+
+            // Show pending draw request if one exists
+            if (engine.getDrawRequestedBy() != null && !engine.getDrawRequestedBy().equals(engine.getCurrentTurn())) {
+                System.out.println("\n*** " + engine.getDrawRequestedBy().toUpperCase() + " has offered a draw ***");
+                System.out.println("Type 'accept' to accept or 'decline' to decline");
+            }
             
             // Check if current player is in check
             try {
@@ -187,6 +209,46 @@ public class Main {
                         }
                     }
                     break;
+
+                case "resign":
+                    System.out.print("Are you sure you want to resign? (yes/no): ");
+                    String confirm = scanner.nextLine().trim().toLowerCase();
+                    if (confirm.equals("yes") || confirm.equals("y")) {
+                        engine.resign();
+                        System.out.println(engine.getCurrentTurn().equals("white") ? "BLACK" : "WHITE" + " wins by resignation!");
+                    } else {
+                        System.out.println("Resignation cancelled.");
+                    }
+                    break;
+
+                case "draw":
+                    boolean drawAccepted = engine.requestDraw();
+                    if (drawAccepted) {
+                        System.out.println("Draw agreed! Game ends in a draw.");
+                    } else if (engine.getDrawRequestedBy() != null) {
+                        System.out.println("Draw offer already pending from " + engine.getDrawRequestedBy());
+                    } else {
+                        System.out.println("Draw offered to " + (engine.getCurrentTurn().equals("white") ? "BLACK" : "WHITE") + "!");
+                    }
+                    break;
+
+                case "accept":
+                    try {
+                        engine.acceptDraw();
+                        System.out.println("Draw accepted! Game ends in a draw.");
+                    } catch (GameStateException e) {
+                        System.out.println("Error: " + e.getMessage());
+                    }
+                    break;
+
+                case "decline":
+                    try {
+                        engine.declineDraw();
+                        System.out.println("Draw declined. Game continues!");
+                    } catch (GameStateException e) {
+                        System.out.println("Error: " + e.getMessage());
+                    }
+                    break;
                     
                 case "help":
                     System.out.println("\nCommands:");
@@ -195,6 +257,10 @@ public class Main {
                     System.out.println("  - Undo: undo");
                     System.out.println("  - Show moves: moves");
                     System.out.println("  - Save game: save <filename>");
+                    System.out.println("  - Resign: resign");
+                    System.out.println("  - Offer draw: draw");
+                    System.out.println("  - Accept draw: accept");
+                    System.out.println("  - Decline draw: decline");
                     System.out.println("  - Main menu: menu");
                     System.out.println("  - Help: help");
                     break;
