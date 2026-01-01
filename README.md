@@ -4,6 +4,8 @@ A fully-featured chess engine implementation in Java with complete rule enforcem
 
 ## 📋 Table of Contents
 - [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Documentation](#-documentation)
 - [Architecture](#-architecture)
 - [How It Works](#-how-it-works)
 - [Installation](#-installation)
@@ -34,6 +36,37 @@ A fully-featured chess engine implementation in Java with complete rule enforcem
 - 💾 **Save/Load Games**: Persistent game state through PGN format
 - 🔄 **Move History**: Track all moves with full algebraic notation
 - 🎮 **User-Friendly**: Shows all legal moves, validates input, provides helpful feedback
+
+## 🚀 Quick Start
+
+**IMPORTANT:** Make sure you're in the project root directory (where `Main.java` is located), NOT in subdirectories like `pieces` or `exceptions`.
+
+```bash
+# Verify you're in the right directory
+ls Main.java    # Should display: Main.java
+
+# Compile all source files
+javac *.java pieces/*.java exceptions/*.java
+
+# Run the game
+java Main
+```
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the `docs/` folder:
+
+- **[Installation Guide](docs/INSTALLATION.md)** - Detailed setup instructions for Windows, macOS, and Linux
+- **[User Guide](docs/USER_GUIDE.md)** - How to play, commands, special moves, and tips
+- **[API Documentation](docs/API.md)** - Complete API reference for all classes and methods
+- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Architecture, design patterns, and contributing guidelines
+
+### Quick Links
+
+- **New to chess?** Start with the [User Guide](docs/USER_GUIDE.md)
+- **Installation problems?** Check the [Installation Guide](docs/INSTALLATION.md)
+- **Want to contribute?** Read the [Developer Guide](docs/DEVELOPER_GUIDE.md)
+- **Building an extension?** See the [API Documentation](docs/API.md)
 
 ## 🏗️ Architecture
 
