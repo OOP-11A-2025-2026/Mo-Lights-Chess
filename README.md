@@ -191,10 +191,12 @@ User Input → Parse Notation → Generate Possible Moves → Filter Legal Moves
 ## 💻 Installation
 
 ### Prerequisites
-- Java Development Kit (JDK) 11 or higher
-- Terminal/Command Prompt
+- **Java Development Kit (JDK) 11 or higher**
+  - Check if you have Java installed: `java -version`
+  - Download from [Oracle](https://www.oracle.com/java/technologies/downloads/) or [OpenJDK](https://openjdk.org/)
+- **Terminal/Command Prompt**
 
-### Setup
+### Quick Start
 
 1. **Clone or download the repository**
 ```bash
@@ -202,24 +204,58 @@ git clone https://github.com/yourusername/Mo-Lights-Chess.git
 cd Mo-Lights-Chess
 ```
 
-2. **Enable UTF-8 output for proper chess piece display**
-PowerShell:
+2. **Compile the project**
 ```bash
+javac *.java pieces/*.java exceptions/*.java
+```
+
+3. **Run the game**
+```bash
+java Main
+```
+
+That's it! The game should start and display the main menu.
+
+### Optional: Enable Better Chess Piece Display
+
+For proper Unicode chess piece rendering (♟️♜♞♝♛♚):
+
+**Windows PowerShell:**
+```powershell
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 ```
-Command Prompt (CMD):
-```bash
+
+**Windows Command Prompt (CMD):**
+```cmd
 chcp 65001
 ```
 
-3. **Compile the project**
+**macOS/Linux:**
+Usually works by default. If you see strange characters, ensure your terminal uses UTF-8 encoding.
+
+### Troubleshooting
+
+**"javac: command not found"**
+- Java JDK is not installed or not in your PATH
+- Install JDK and ensure `JAVA_HOME` is set correctly
+
+**Compilation errors**
+- Make sure you're in the project root directory (where Main.java is located)
+- Check that you have JDK 11 or higher: `javac -version`
+
+**Chess pieces display as boxes or question marks**
+- Your terminal doesn't support UTF-8 or Unicode characters
+- Try the UTF-8 commands above for your platform
+- The game will still work, just with less pretty display
+
+**To clean up compiled files:**
 ```bash
-javac -d . *.java pieces/*.java exceptions/*.java
+rm *.class pieces/*.class exceptions/*.class
 ```
 
-4. **Run the game**
-```bash
-java Main
+Or on Windows:
+```cmd
+del *.class pieces\*.class exceptions\*.class
 ```
 
 ## 🎮 Usage
@@ -551,4 +587,3 @@ This project is open source and available for educational purposes.
 ---
 
 **Enjoy playing Mo-Lights Chess! ♟️**
-
